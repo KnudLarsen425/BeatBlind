@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-white antialiased;
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: #0c0e0d;
+    background-image:
+      radial-gradient(ellipse 70% 60% at 50% -15%, rgba(52, 211, 109, 0.17) 0%, transparent 62%),
+      radial-gradient(ellipse 45% 45% at 100% 90%, rgba(231, 185, 78, 0.07) 0%, transparent 60%);
+    min-height: 100vh;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #1DB954 #1a1a2e;
+  }
+  *::-webkit-scrollbar { width: 5px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: #1DB954; border-radius: 99px; }
+}
+
+@layer components {
+  .btn-primary {
+        @apply relative bg-spotify-green text-black font-bold py-3 px-8 rounded-lg
+          hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100
+           shadow-lg shadow-spotify-green/25;
+  }
+
+  .btn-secondary {
+    @apply border border-white/20 text-white font-semibold py-3 px-8 rounded-lg
+           hover:border-white/50 hover:bg-white/10 active:scale-95 transition-all duration-200
+           backdrop-blur-sm;
+  }
+
+  .card {
+    @apply rounded-xl p-5 transition-all duration-200;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+  }
+
+  .card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(24px);
+  }
+
+  .glow-green {
+    box-shadow: 0 0 40px rgba(29, 185, 84, 0.2), 0 0 80px rgba(29, 185, 84, 0.08);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #d6ff76 0%, #1DB954 55%, #f0c75e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    @apply text-[10px] uppercase tracking-[0.25em] text-spotify-green;
+  }
+
+  .mono {
+    font-family: 'DM Mono', monospace;
+  }
+}
