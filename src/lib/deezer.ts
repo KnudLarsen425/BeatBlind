@@ -24,7 +24,7 @@ export async function getDeezerPreview(
 ): Promise<string | null> {
   const query = encodeURIComponent(`${trackName} ${artistName}`)
   try {
-    const res = await fetch(`/api/deezer/search?q=${query}&limit=10`)
+    const res = await fetch(`https://api.deezer.com/search?q=${query}&limit=10`)
     if (!res.ok) return null
     const data = await res.json()
     if (!data.data?.length) return null
