@@ -66,7 +66,7 @@ export async function getPublicPlaylist(playlistId: string): Promise<SpotifyPlay
 }
 
 export async function getPlaylistTracksViaEmbed(playlistId: string): Promise<SpotifyTrack[]> {
-  const res = await fetch(`/spotify-embed/playlist/${encodeURIComponent(playlistId)}`)
+  const res = await fetch(`/api/spotify-embed/playlist/${encodeURIComponent(playlistId)}`)
   if (!res.ok) throw new Error(`Embed fetch failed: ${res.status}`)
   const html = await res.text()
   const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.+?)<\/script>/s)
@@ -91,7 +91,7 @@ export async function getPlaylistTracksViaEmbed(playlistId: string): Promise<Spo
 
 export async function getTrackAlbumArt(trackId: string): Promise<string | null> {
   try {
-    const res = await fetch(`/spotify-embed/track/${encodeURIComponent(trackId)}`)
+    const res = await fetch(`/api/spotify-embed/track/${encodeURIComponent(trackId)}`)
     if (!res.ok) return null
     const html = await res.text()
     const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.+?)<\/script>/s)
