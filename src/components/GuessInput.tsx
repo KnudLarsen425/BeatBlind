@@ -71,7 +71,7 @@ export function GuessInput({ tracks, onGuess, disabled }: Props) {
           {open && filtered.length > 0 && (
             <ul
               ref={listRef}
-              className="absolute z-50 w-full top-full mt-2 bg-[#0f0f1a] border border-white/10 rounded-xl overflow-y-auto shadow-2xl shadow-black/50 overscroll-contain"
+              className="absolute z-50 w-full bottom-full mb-2 bg-[#0f0f1a] border border-white/10 rounded-xl overflow-y-auto shadow-2xl shadow-black/50 overscroll-contain"
               style={{ maxHeight: 'min(50vh, 24rem)' }}
               onMouseDown={(e) => e.preventDefault()}
             >
