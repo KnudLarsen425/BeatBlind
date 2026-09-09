@@ -11,6 +11,7 @@ import { getGoogleUser, logoutGoogle } from './lib/google'
 import { getPartyRoomCode, setPartyRoomCode, getRoomCodeFromUrl, setRoomCodeInUrl, createPartyRoomCode, normalizeRoomCode, getRoomMembers, setRoomMembers } from './lib/storage'
 import { RoomLobbyPage } from './components/RoomLobbyPage'
 import { JoinRoomPage } from './components/JoinRoomPage'
+import { RoomSelectPage } from './components/RoomSelectPage'
 import type { GoogleUser } from './lib/google'
 import type { GameScreen as GameScreenType, SpotifyTrack, SpotifyPlaylist, GameStats, RoundResult, GameMode } from './types'
 
@@ -98,7 +99,7 @@ export default function App() {
         .then((user) => {
           console.log('logged in as:', user.email)
           setUserName(getGoogleUser()?.username ?? user.display_name)
-          setScreen('playlists')
+          setScreen('roomSelect')
         })
         .catch((e) => {
           console.error('Auth error:', e)
@@ -113,7 +114,7 @@ export default function App() {
         getCurrentUser()
           .then((user) => {
             setUserName(getGoogleUser()?.username ?? user.display_name)
-            setScreen('playlists')
+            setScreen('roomSelect')
           })
           .catch(() => {})
           .finally(() => setAuthLoading(false))
@@ -177,12 +178,22 @@ export default function App() {
 
   if (screen === 'landing') return <SpotifyConnectPage userName={googleUser.username} />
 
+  if (screen === 'roomSelect') {
+    return (
+      <RoomSelectPage
+        userName={userName}
+        onCreateRoom={handleCreateRoom}
+        onJoinRoom={() => setScreen('joinRoom')}
+      />
+    )
+  }
+
   if (screen === 'joinRoom') {
     return (
       <JoinRoomPage
         defaultPlayerName={userName}
         onJoinRoom={(code: string) => handleJoinRoom(code)}
-        onBack={() => setScreen('playlists')}
+        onBack={() => setScreen('roomSelect')}
       />
     )
   }
@@ -195,7 +206,7 @@ export default function App() {
         userName={userName || 'Host'}
         onAddPlayer={addRoomMember}
         onContinue={() => setScreen('playlists')}
-        onBack={() => setScreen('playlists')}
+        onBack={() => setScreen('roomSelect')}
         onCopyInvite={handleRoomCopyInvite}
       />
     )

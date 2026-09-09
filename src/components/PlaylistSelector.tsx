@@ -9,14 +9,11 @@ interface Props {
   onStart: (tracks: SpotifyTrack[], playlist: SpotifyPlaylist, mode: GameMode) => void
   onLogout: () => void
   userName: string
-  roomCode?: string
-  onCreateRoom?: () => void
-  onJoinRoom?: (code: string) => void
 }
 
 const CATEGORIES: PlaylistCategory[] = ['All', 'Chill', 'Party', 'Throwback', 'Workout', 'Focus', 'Night Drive']
 
-export function PlaylistSelector({ onStart, onLogout, userName, roomCode = '', onCreateRoom, onJoinRoom }: Props) {
+export function PlaylistSelector({ onStart, onLogout, userName }: Props) {
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([])
   const [selected, setSelected] = useState<SpotifyPlaylist | null>(null)
   const [loading, setLoading] = useState(true)
@@ -31,10 +28,6 @@ export function PlaylistSelector({ onStart, onLogout, userName, roomCode = '', o
   const [urlPreviewError, setUrlPreviewError] = useState('')
   const [mode, setMode] = useState<GameMode>('singleplayer')
   const [selectedCategory, setSelectedCategory] = useState<PlaylistCategory>('All')
-  const [joinCode, setJoinCode] = useState(roomCode)
-  const [copiedInvite, setCopiedInvite] = useState(false)
-
-  useEffect(() => { setJoinCode(roomCode) }, [roomCode])
 
   useEffect(() => {
     getUserPlaylists()
@@ -187,19 +180,7 @@ export function PlaylistSelector({ onStart, onLogout, userName, roomCode = '', o
   }
 
   const handleCopyInvite = async () => {
-    if (!roomCode) {
-      onCreateRoom?.()
-      return
-    }
-
-    const invite = `${window.location.origin}${window.location.pathname}?room=${roomCode}`
-    try {
-      await navigator.clipboard.writeText(invite)
-      setCopiedInvite(true)
-      setTimeout(() => setCopiedInvite(false), 1500)
-    } catch {
-      // Copy failed silently
-    }
+    // Invite copying removed - handled in room lobby
   }
 
   return (
@@ -226,24 +207,9 @@ export function PlaylistSelector({ onStart, onLogout, userName, roomCode = '', o
         <div className="mb-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Party room</p>
-              <p className="mt-1 text-sm text-white/80">{roomCode ? `Room ${roomCode}` : 'No room joined yet'}</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Game playlist</p>
+              <p className="mt-1 text-sm text-white/80">Choose a playlist to play from</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={onCreateRoom} className="btn-secondary text-xs px-3 py-2">{roomCode ? 'New room' : 'Create room'}</button>
-              <button type="button" onClick={handleCopyInvite} className="btn-secondary text-xs px-3 py-2">{copiedInvite ? 'Copied!' : 'Copy invite'}</button>
-            </div>
-          </div>
-
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-            <input
-              aria-label="Join party room"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value)}
-              placeholder="Enter room code"
-              className="w-full glass rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none border border-white/5 focus:border-spotify-green/40 transition-colors"
-            />
-            <button type="button" onClick={() => onJoinRoom?.(joinCode)} className="btn-primary text-xs px-4 py-2.5 min-w-[120px]">Open join page</button>
           </div>
         </div>
 
