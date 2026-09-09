@@ -2,6 +2,7 @@ import type { LeaderboardEntry, SpotifyPlaylist } from '../types'
 
 const LEADERBOARD_KEY = 'beatblind:leaderboard'
 const ROOM_KEY = 'beatblind:party-room'
+const ROOM_MEMBERS_KEY = 'beatblind:room-members'
 
 export function normalizeRoomCode(code: string): string {
   return code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
@@ -88,4 +89,13 @@ export function getPlaylistCategory(playlistName: string) {
   if (normalized.includes('focus') || normalized.includes('study') || normalized.includes('deep')) return 'Focus'
   if (normalized.includes('night') || normalized.includes('drive') || normalized.includes('after')) return 'Night Drive'
   return 'All'
+}
+
+export function getRoomMembers(): string[] {
+  return readJSON<string[]>(ROOM_MEMBERS_KEY, [])
+}
+
+export function setRoomMembers(members: string[]) {
+  const clean = Array.from(new Set((members || []).map((name) => name.trim()).filter(Boolean))).slice(0, 20)
+  writeJSON(ROOM_MEMBERS_KEY, clean)
 }

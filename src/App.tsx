@@ -8,7 +8,8 @@ import { ResultsScreen } from './components/ResultsScreen'
 import { GoogleLoginPage } from './components/GoogleLoginPage'
 import { SpotifyConnectPage } from './components/SpotifyConnectPage'
 import { getGoogleUser, logoutGoogle } from './lib/google'
-import { getPartyRoomCode, setPartyRoomCode, getRoomCodeFromUrl, setRoomCodeInUrl, createPartyRoomCode, normalizeRoomCode } from './lib/storage'
+import { getPartyRoomCode, setPartyRoomCode, getRoomCodeFromUrl, setRoomCodeInUrl, createPartyRoomCode, normalizeRoomCode, getRoomMembers, setRoomMembers } from './lib/storage'
+import { RoomLobbyPage } from './components/RoomLobbyPage'
 import type { GoogleUser } from './lib/google'
 import type { GameScreen as GameScreenType, SpotifyTrack, SpotifyPlaylist, GameStats, RoundResult, GameMode } from './types'
 
@@ -25,12 +26,23 @@ export default function App() {
   const [googleUser, setGoogleUser] = useState(() => getGoogleUser())
   const [showGoogleLogin, setShowGoogleLogin] = useState(false)
   const [partyRoomCode, setPartyRoomCodeState] = useState(() => getPartyRoomCode() || getRoomCodeFromUrl())
+  const [roomMembers, setRoomMembersState] = useState<string[]>(() => getRoomMembers())
 
   const syncPartyRoomCode = useCallback((code: string) => {
     const next = normalizeRoomCode(code)
     setPartyRoomCodeState(next)
     setPartyRoomCode(next)
     setRoomCodeInUrl(next)
+  }, [])
+
+  const addRoomMember = useCallback((name: string) => {
+    const clean = name.trim()
+    if (!clean) return
+    setRoomMembersState((prev) => {
+      const next = Array.from(new Set([...prev, clean]))
+      setRoomMembers(next)
+      return next
+    })
   }, [])
 
   const handleGoogleAuthenticated = useCallback((user: GoogleUser) => {
@@ -53,6 +65,8 @@ export default function App() {
     setPartyRoomCodeState('')
     setPartyRoomCode('')
     setRoomCodeInUrl('')
+    setRoomMembersState([])
+    setRoomMembers([])
   }, [])
 
   // Handle OAuth callback
@@ -60,6 +74,8 @@ export default function App() {
     const roomCodeFromUrl = getRoomCodeFromUrl()
     if (roomCodeFromUrl) {
       syncPartyRoomCode(roomCodeFromUrl)
+      const members = getRoomMembers()
+      if (members.length === 0 && userName) setRoomMembersState([userName])
     }
 
     const params = new URLSearchParams(window.location.search)
@@ -106,6 +122,33 @@ export default function App() {
     })
   }, [])
 
+  const handleCreateRoom = useCallback(() => {
+    const next = createPartyRoomCode() || 'ROOM'
+    const hostName = userName || 'Host'
+    syncPartyRoomCode(next)
+    setRoomMembersState([hostName])
+    setRoomMembers([hostName])
+    setScreen('room')
+  }, [syncPartyRoomCode, userName])
+
+  const handleJoinRoom = useCallback((code: string) => {
+    const next = normalizeRoomCode(code)
+    if (!next) return
+    const currentMembers = getRoomMembers()
+    const guestName = userName || 'Player'
+    const members = Array.from(new Set([...currentMembers, guestName]))
+    syncPartyRoomCode(next)
+    setRoomMembersState(members)
+    setRoomMembers(members)
+    setScreen('room')
+  }, [syncPartyRoomCode, userName])
+
+  const handleRoomCopyInvite = useCallback(() => {
+    if (!partyRoomCode) return
+    const invite = `${window.location.origin}${window.location.pathname}?room=${partyRoomCode}`
+    void navigator.clipboard.writeText(invite)
+  }, [partyRoomCode])
+
   const handleGameStart = useCallback((t: SpotifyTrack[], p: SpotifyPlaylist, gameMode: GameMode) => {
     setTracks(t)
     setPlaylist(p)
@@ -133,6 +176,20 @@ export default function App() {
 
   if (screen === 'landing') return <SpotifyConnectPage userName={googleUser.username} />
 
+  if (screen === 'room') {
+    return (
+      <RoomLobbyPage
+        roomCode={partyRoomCode}
+        members={roomMembers}
+        userName={userName || 'Host'}
+        onAddPlayer={addRoomMember}
+        onContinue={() => setScreen('playlists')}
+        onBack={() => setScreen('playlists')}
+        onCopyInvite={handleRoomCopyInvite}
+      />
+    )
+  }
+
   if (screen === 'playlists') {
     return (
       <PlaylistSelector
@@ -140,8 +197,8 @@ export default function App() {
         onStart={handleGameStart}
         onLogout={handleLogout}
         roomCode={partyRoomCode}
-        onCreateRoom={() => syncPartyRoomCode(createPartyRoomCode())}
-        onJoinRoom={syncPartyRoomCode}
+        onCreateRoom={handleCreateRoom}
+        onJoinRoom={handleJoinRoom}
       />
     )
   }
