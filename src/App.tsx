@@ -10,6 +10,7 @@ import { SpotifyConnectPage } from './components/SpotifyConnectPage'
 import { getGoogleUser, logoutGoogle } from './lib/google'
 import { getPartyRoomCode, setPartyRoomCode, getRoomCodeFromUrl, setRoomCodeInUrl, createPartyRoomCode, normalizeRoomCode, getRoomMembers, setRoomMembers } from './lib/storage'
 import { RoomLobbyPage } from './components/RoomLobbyPage'
+import { JoinRoomPage } from './components/JoinRoomPage'
 import type { GoogleUser } from './lib/google'
 import type { GameScreen as GameScreenType, SpotifyTrack, SpotifyPlaylist, GameStats, RoundResult, GameMode } from './types'
 
@@ -175,6 +176,16 @@ export default function App() {
   if (!googleUser) return <LandingPage onLogin={() => setShowGoogleLogin(true)} />
 
   if (screen === 'landing') return <SpotifyConnectPage userName={googleUser.username} />
+
+  if (screen === 'joinRoom') {
+    return (
+      <JoinRoomPage
+        defaultPlayerName={userName}
+        onJoinRoom={(code: string) => handleJoinRoom(code)}
+        onBack={() => setScreen('playlists')}
+      />
+    )
+  }
 
   if (screen === 'room') {
     return (

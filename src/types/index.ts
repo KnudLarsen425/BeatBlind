@@ -35,7 +35,7 @@ export interface PlaylistTrackItem {
   is_local: boolean
 }
 
-export type GameScreen = 'landing' | 'playlists' | 'room' | 'game' | 'results'
+export type GameScreen = 'landing' | 'playlists' | 'room' | 'joinRoom' | 'game' | 'results'
 
 export type GameMode = 'singleplayer' | 'teams'
 
