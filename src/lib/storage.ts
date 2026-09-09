@@ -3,6 +3,25 @@ import type { LeaderboardEntry, SpotifyPlaylist } from '../types'
 const LEADERBOARD_KEY = 'beatblind:leaderboard'
 const ROOM_KEY = 'beatblind:party-room'
 
+export function normalizeRoomCode(code: string): string {
+  return code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+}
+
+export function getRoomCodeFromUrl(): string {
+  if (typeof window === 'undefined') return ''
+  const room = new URLSearchParams(window.location.search).get('room') ?? ''
+  return normalizeRoomCode(room)
+}
+
+export function setRoomCodeInUrl(code: string) {
+  if (typeof window === 'undefined') return
+  const clean = normalizeRoomCode(code)
+  const url = new URL(window.location.href)
+  if (clean) url.searchParams.set('room', clean)
+  else url.searchParams.delete('room')
+  window.history.replaceState({}, '', `${url.pathname}${url.search}`)
+}
+
 function readJSON<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback
   try {
@@ -41,11 +60,13 @@ export function getPartyRoomCode(): string {
 }
 
 export function setPartyRoomCode(code: string) {
-  writeJSON(ROOM_KEY, code)
+  const clean = normalizeRoomCode(code)
+  writeJSON(ROOM_KEY, clean)
 }
 
 export function createPartyRoomCode() {
-  const code = Math.random().toString(36).slice(2, 8).toUpperCase()
+  const code = normalizeRoomCode(Math.random().toString(36).slice(2, 8).toUpperCase())
+  if (!code) return ''
   setPartyRoomCode(code)
   return code
 }

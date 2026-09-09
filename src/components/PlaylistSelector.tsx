@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { getUserPlaylists, getPlaylistTracks, getPlaylistTracksViaEmbed, getTrackAlbumArt, getPublicPlaylist } from '../lib/spotify'
 import { getDeezerPreview } from '../lib/deezer'
-import { getDailyChallengePlaylist, getPlaylistCategory } from '../lib/storage'
+import { getDailyChallengePlaylist, getPlaylistCategory, normalizeRoomCode } from '../lib/storage'
 import { PlaylistCard } from './PlaylistCard'
 import type { SpotifyPlaylist, SpotifyTrack, GameMode, PlaylistCategory } from '../types'
 
@@ -11,11 +11,12 @@ interface Props {
   userName: string
   roomCode?: string
   onCreateRoom?: () => void
+  onJoinRoom?: (code: string) => void
 }
 
 const CATEGORIES: PlaylistCategory[] = ['All', 'Chill', 'Party', 'Throwback', 'Workout', 'Focus', 'Night Drive']
 
-export function PlaylistSelector({ onStart, onLogout, userName, roomCode = '', onCreateRoom }: Props) {
+export function PlaylistSelector({ onStart, onLogout, userName, roomCode = '', onCreateRoom, onJoinRoom }: Props) {
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([])
   const [selected, setSelected] = useState<SpotifyPlaylist | null>(null)
   const [loading, setLoading] = useState(true)
@@ -30,6 +31,11 @@ export function PlaylistSelector({ onStart, onLogout, userName, roomCode = '', o
   const [urlPreviewError, setUrlPreviewError] = useState('')
   const [mode, setMode] = useState<GameMode>('singleplayer')
   const [selectedCategory, setSelectedCategory] = useState<PlaylistCategory>('All')
+  const [joinCode, setJoinCode] = useState(roomCode)
+  const [joinError, setJoinError] = useState('')
+  const [copiedInvite, setCopiedInvite] = useState(false)
+
+  useEffect(() => { setJoinCode(roomCode) }, [roomCode])
 
   useEffect(() => {
     getUserPlaylists()
@@ -181,6 +187,32 @@ export function PlaylistSelector({ onStart, onLogout, userName, roomCode = '', o
     }
   }
 
+  const handleJoinRoom = () => {
+    const nextCode = normalizeRoomCode(joinCode)
+    if (!nextCode) {
+      setJoinError('Enter a room code first.')
+      return
+    }
+    setJoinError('')
+    onJoinRoom?.(nextCode)
+  }
+
+  const handleCopyInvite = async () => {
+    if (!roomCode) {
+      onCreateRoom?.()
+      return
+    }
+
+    const invite = `${window.location.origin}${window.location.pathname}?room=${roomCode}`
+    try {
+      await navigator.clipboard.writeText(invite)
+      setCopiedInvite(true)
+      setTimeout(() => setCopiedInvite(false), 1500)
+    } catch {
+      setJoinError('Copy failed. Share the room code manually.')
+    }
+  }
+
   return (
     <div className="h-screen flex flex-col relative overflow-hidden animate-fade-in">
       <header className="relative flex-shrink-0 flex items-center justify-between px-6 md:px-12 py-3 border-b border-white/10 max-w-7xl w-full mx-auto">
@@ -200,6 +232,31 @@ export function PlaylistSelector({ onStart, onLogout, userName, roomCode = '', o
         <div className="mb-3 flex items-end justify-between gap-5">
           <div><p className="eyebrow mb-1">02 / choose your arena</p><h2 className="text-3xl md:text-4xl font-bold tracking-tight">Pick a <span className="text-gradient">playlist.</span></h2></div>
           <p className="hidden sm:block text-right text-white/35 text-xs max-w-32">Up to 50 tracks<br />per game</p>
+        </div>
+
+        <div className="mb-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Party room</p>
+              <p className="mt-1 text-sm text-white/80">{roomCode ? `Room ${roomCode}` : 'No room joined yet'}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={onCreateRoom} className="btn-secondary text-xs px-3 py-2">{roomCode ? 'New room' : 'Create room'}</button>
+              <button type="button" onClick={handleCopyInvite} className="btn-secondary text-xs px-3 py-2">{copiedInvite ? 'Copied!' : 'Copy invite'}</button>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <input
+              aria-label="Join party room"
+              value={joinCode}
+              onChange={(e) => { setJoinCode(e.target.value); setJoinError('') }}
+              placeholder="Enter room code"
+              className="w-full glass rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none border border-white/5 focus:border-spotify-green/40 transition-colors"
+            />
+            <button type="button" onClick={handleJoinRoom} className="btn-primary text-xs px-4 py-2.5 min-w-[120px]">Join room</button>
+          </div>
+          {joinError && <p className="mt-2 text-xs text-red-400">{joinError}</p>}
         </div>
 
         <div className="mb-3 flex flex-wrap gap-2">
@@ -265,15 +322,6 @@ export function PlaylistSelector({ onStart, onLogout, userName, roomCode = '', o
               </ul>
             )}
           </div>
-
-          <button
-            type="button"
-            onClick={onCreateRoom}
-            className="btn-secondary text-xs px-4 py-2.5 min-w-[120px]"
-            aria-label="Create party room code"
-          >
-            {roomCode ? `Room ${roomCode}` : 'Create room'}
-          </button>
         </div>
 
         {dailyChallenge && (

@@ -3,27 +3,21 @@ import { useGame } from '../hooks/useGame'
 import { AudioPlayer } from './AudioPlayer'
 import { GuessInput } from './GuessInput'
 import { ScoreDisplay } from './ScoreDisplay'
-import type { SpotifyTrack, SpotifyPlaylist, GameStats, RoundResult, GameMode, ConfidenceLevel } from '../types'
+import type { SpotifyTrack, SpotifyPlaylist, GameStats, RoundResult, GameMode } from '../types'
 
 interface Props {
   tracks: SpotifyTrack[]
   playlist: SpotifyPlaylist
   mode: GameMode
+  roomCode?: string
   onFinish: (stats: GameStats, history: RoundResult[], teamScores?: Record<'A' | 'B', number>) => void
   onChangePlaylist: () => void
 }
 
-const CONFIDENCE_OPTIONS: { label: string; value: ConfidenceLevel }[] = [
-  { label: 'Low', value: 'low' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'High', value: 'high' },
-]
-
-export function GameScreen({ tracks, playlist, mode, onFinish, onChangePlaylist }: Props) {
+export function GameScreen({ tracks, mode, onFinish, onChangePlaylist }: Props) {
   const game = useGame(tracks, mode)
   const [feedbackClass, setFeedbackClass] = useState('')
   const [wrongFlash, setWrongFlash] = useState(false)
-  const [confidence, setConfidence] = useState<ConfidenceLevel>('medium')
   const startedRef = useRef(false)
 
   useEffect(() => {
@@ -68,10 +62,8 @@ export function GameScreen({ tracks, playlist, mode, onFinish, onChangePlaylist 
       <header className="relative flex-shrink-0 flex items-center justify-between px-6 md:px-12 py-3 border-b border-white/10 max-w-7xl w-full mx-auto">
         <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-md bg-spotify-green text-black flex items-center justify-center font-black">B</div><span className="font-bold">Beat<span className="text-spotify-green">Blind</span></span></div>
         <div className="flex items-center gap-2">
-          <span className="mono text-[10px] text-white/40 glass px-3 py-1.5 rounded-lg border border-white/5 truncate max-w-32">{mode === 'singleplayer' ? 'Singleplayer' : `${game.activeTeamLabel} turn`}</span>
-          <span className="mono text-[10px] text-white/40 glass px-3 py-1.5 rounded-lg border border-white/5 truncate max-w-32">{playlist.name}</span>
           <button onClick={onChangePlaylist} className="text-xs text-white/40 hover:text-white transition-colors glass px-3 py-1.5 rounded-lg border border-white/5">
-            Change
+            Back
           </button>
         </div>
       </header>
@@ -164,36 +156,12 @@ export function GameScreen({ tracks, playlist, mode, onFinish, onChangePlaylist 
                   <span className="mono text-[10px] text-white/25">{game.currentStep}s heard</span>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-white/40">Confidence</span>
-                    <span className="text-xs text-spotify-green font-semibold capitalize">{confidence}</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {CONFIDENCE_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        aria-pressed={confidence === option.value}
-                        onClick={() => setConfidence(option.value)}
-                        className={`px-2 py-2 rounded-lg border text-xs font-semibold transition-all ${
-                          confidence === option.value
-                            ? 'bg-spotify-green text-black border-spotify-green'
-                            : 'bg-white/[0.02] text-white/70 border-white/10 hover:border-white/20'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {wrongFlash && (
                   <div className="flex items-center justify-center gap-2 text-red-400 font-bold animate-shake py-1">
                     <span>✗</span><span className="text-sm">Wrong! Listen again…</span>
                   </div>
                 )}
-                <GuessInput tracks={tracks} onGuess={(id) => game.submitGuess(id, confidence)} disabled={!!result} />
+                <GuessInput tracks={tracks} onGuess={(id) => game.submitGuess(id)} disabled={!!result} />
                 <button onClick={game.skipRound} className="w-full text-xs text-white/25 hover:text-white/50 transition-colors py-2">
                   Skip this song
                 </button>

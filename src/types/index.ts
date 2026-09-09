@@ -43,8 +43,6 @@ export type RevealStep = 0.1 | 0.5 | 2 | 5 | 10 | 15
 
 export type PlaylistCategory = 'All' | 'Chill' | 'Party' | 'Throwback' | 'Workout' | 'Focus' | 'Night Drive'
 
-export type ConfidenceLevel = 'low' | 'medium' | 'high'
-
 export const REVEAL_STEPS: RevealStep[] = [0.1, 0.5, 2, 5, 10, 15]
 
 export const STEP_POINTS: Record<number, number> = {
@@ -54,12 +52,6 @@ export const STEP_POINTS: Record<number, number> = {
   5: 40,
   10: 20,
   15: 10,
-}
-
-export const CONFIDENCE_MULTIPLIERS: Record<ConfidenceLevel, number> = {
-  low: 0.75,
-  medium: 1,
-  high: 1.35,
 }
 
 export interface GameStats {

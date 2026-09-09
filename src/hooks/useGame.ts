@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
-import type { SpotifyTrack, GameStats, RoundResult, RevealStep, GameMode, ConfidenceLevel } from '../types'
-import { REVEAL_STEPS, STEP_POINTS, CONFIDENCE_MULTIPLIERS } from '../types'
+import type { SpotifyTrack, GameStats, RoundResult, RevealStep, GameMode } from '../types'
+import { REVEAL_STEPS, STEP_POINTS } from '../types'
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -62,7 +62,7 @@ export function useGame(tracks: SpotifyTrack[], mode: GameMode = 'singleplayer')
   }, [mode])
 
   const submitGuess = useCallback(
-    (guessedTrackId: string, confidence: ConfidenceLevel = 'medium') => {
+    (guessedTrackId: string) => {
       if (!currentTrack || roundResult) return
 
       const correct = guessedTrackId === currentTrack.id
@@ -75,8 +75,7 @@ export function useGame(tracks: SpotifyTrack[], mode: GameMode = 'singleplayer')
         return
       }
 
-      const confidenceMultiplier = CONFIDENCE_MULTIPLIERS[confidence]
-      const points = correct ? Math.round(STEP_POINTS[step] * confidenceMultiplier) : 0
+      const points = correct ? Math.round(STEP_POINTS[step]) : 0
       const result: RoundResult = {
         track: currentTrack,
         guessedCorrectly: correct,
